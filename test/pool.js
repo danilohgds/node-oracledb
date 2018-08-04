@@ -1005,13 +1005,49 @@ describe('2. pool.js', function() {
 
           pool.getConnection( function(err, conn1){
             conn1.should.be.ok();
-            conn1.execute("BEGIN dbms_lock.sleep(11); END;");
           });
 
-          pool.close(10000,function(err) {
-            should.exist(err);
-            (err.message).should.startWith('ORA-24422');
+          pool.close(1,function(err) {
+            pool.connectionsInUse.should.be.undefined();            
+            done();
           });
+
+          pool.getConnection()
+          .catch((err) => {
+            should.exist(err);
+            (err.message).should.startWith('NJS-064:');
+          });
+        }
+      );
+    });
+
+    it('2.13.2 close pool without force flag (will give out an error ), and prevent new connections', function(done) {
+      oracledb.createPool(
+        {
+          user              : dbConfig.user,
+          password          : dbConfig.password,
+          connectString     : dbConfig.connectString,
+          poolMin           : 0,
+          poolMax           : 1,
+          poolIncrement     : 1,
+          poolTimeout       : 1
+        }
+        ,
+        function(err, pool) {
+          should.not.exist(err);
+
+          pool.should.be.ok();
+
+          pool.getConnection( function(err, conn1){
+            conn1.should.be.ok();
+            conn1.execute("BEGIN dbms_lock.sleep(1000); END;");
+          });
+
+          pool.close(function(err) {
+            should.not.exist(err);
+          });
+
+          console.log(pool);
 
           pool.getConnection()
           .catch((err) => {
@@ -1021,7 +1057,7 @@ describe('2. pool.js', function() {
           });
         }
       );
-    })
+    });
   });
 
 });

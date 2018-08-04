@@ -37,9 +37,9 @@
 var config = {};
 
 /***************** OPTION 1 - Edit credentials at this section ******************/
-config.user          = 'hr';
-config.password      = 'hr';
-config.connectString = 'localhost/orcl';
+config.user          = 'PVD';
+config.password      = 'PVDPASS';
+config.connectString = 'localhost/xe';
 
 config.test = {};
 
@@ -47,7 +47,7 @@ config.test = {};
 config.test.externalAuth  = false;
 
 // Do you have DBA privilege? Negative by default.
-config.test.DBA_PRIVILEGE = false;
+config.test.DBA_PRIVILEGE = true;
 config.test.DBA_user      = 'sys';
 config.test.DBA_password  = 'oracle';
 

@@ -447,7 +447,7 @@ NAN_METHOD(njsPool::Close)
     njsBaton *baton;
     njsPool *pool;
 
-    pool = (njsPool*) ValidateArgs(info, 1, 1);
+    pool = (njsPool*) ValidateArgs(info, 1, 2);
     if (!pool)
         return;
     baton = pool->CreateBaton(info);
@@ -466,8 +466,13 @@ NAN_METHOD(njsPool::Close)
 // from the baton to the pool.
 //-----------------------------------------------------------------------------
 void njsPool::Async_Close(njsBaton *baton)
-{
-    if (dpiPool_close(baton->dpiPoolHandle, DPI_MODE_POOL_CLOSE_DEFAULT) < 0) {
+{   
+    dpiPoolCloseMode mode;
+
+    mode = (baton->dpiPoolCloseMode) == true ? DPI_MODE_POOL_CLOSE_FORCE :
+            DPI_MODE_POOL_CLOSE_DEFAULT;
+    
+    if (dpiPool_close(baton->dpiPoolHandle, DPI_MODE_POOL_CLOSE_FORCE) < 0) {
         njsPool *pool = (njsPool*) baton->callingObj;
         pool->dpiPoolHandle = baton->dpiPoolHandle;
         baton->dpiPoolHandle = NULL;
