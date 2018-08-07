@@ -1007,7 +1007,7 @@ describe('2. pool.js', function() {
             conn1.should.be.ok();
           });
 
-          pool.close(1,function(err) {
+          pool.close(10,function(err) {
             pool.connectionsInUse.should.be.undefined();            
             done();
           });
@@ -1047,13 +1047,12 @@ describe('2. pool.js', function() {
             should.not.exist(err);
           });
 
-          console.log(pool);
 
           pool.getConnection()
           .catch((err) => {
             should.exist(err);
-            (err.message).should.startWith('NJS-064:');
-            done()
+            (err.message).should.startWith('ORA-24422:');
+            done();
           });
         }
       );

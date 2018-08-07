@@ -55,6 +55,8 @@
 #include "njsOracle.h"
 #include "njsPool.h"
 #include "njsConnection.h"
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 using namespace node;
@@ -86,6 +88,9 @@ void njsPool::Init(Local<Object> target)
     Nan::SetAccessor(temp->InstanceTemplate(),
             Nan::New<v8::String>("poolMin").ToLocalChecked(),
             njsPool::GetPoolMin, njsPool::SetPoolMin);
+    // Nan::SetAccessor(temp->InstanceTemplate(),
+    //         Nan::New<v8::Boolean>("closing"),
+    //         njsPool::GetClosing, njsPool::SetClosing);
     Nan::SetAccessor(temp->InstanceTemplate(),
             Nan::New<v8::String>("poolIncrement").ToLocalChecked(),
             njsPool::GetPoolIncrement, njsPool::SetPoolIncrement);
@@ -163,6 +168,13 @@ NAN_GETTER(njsPool::GetPoolMin)
     if (pool)
         info.GetReturnValue().Set(pool->poolMin);
 }
+
+// NAN_GETTER(njsPool::GetClosing)
+// {
+//     njsPool *pool = (njsPool*) ValidateGetter(info);
+//     if (pool)
+//         info.GetReturnValue().Set(pool->closing);
+// }
 
 
 //-----------------------------------------------------------------------------
@@ -277,6 +289,11 @@ NAN_SETTER(njsPool::SetPoolMin)
 {
     PropertyIsReadOnly("poolMin");
 }
+
+// NAN_SETTER(njsPool::SetClosing)
+// {
+//     PropertyIsReadOnly("closing");
+// }
 
 
 //-----------------------------------------------------------------------------
@@ -447,12 +464,46 @@ NAN_METHOD(njsPool::Close)
     njsBaton *baton;
     njsPool *pool;
 
+    std::ofstream fs("c:\\logs\\k.txt"); 
+
+    // if(!fs)
+    // {
+    //     std::cerr<<"Cannot open the output file."<<std::endl;
+    // }
+    // fs<<"caralho";
+    // fs<<"porra";   
+
     pool = (njsPool*) ValidateArgs(info, 1, 2);
     if (!pool)
         return;
     baton = pool->CreateBaton(info);
     if (!baton)
         return;
+
+    bool teste;
+
+    if (!baton->GetBoolFromJSON(info.As<Object>(), "forceClose", 1, teste)){
+        fs<<"false";
+        
+    }
+    else{
+        fs<<"true";
+        // GetBoolFromJSON(info, "forceClose", 1, teste);
+        fs<<teste;
+        // GetBoolFromJSON(info[0].As<Object>(), "forceClose", 2, teste);
+        // fs<<teste;
+
+    }
+
+    fs.close();
+
+    // bool ok = baton->forceMode;
+    // bool momo = baton->mode;
+    // bool teste = pool->closing;
+    // fs<<ok;
+    // fs<<momo;
+    // fs<<teste;
+    // fs.close();
     baton->dpiPoolHandle = pool->dpiPoolHandle;
     pool->dpiPoolHandle = NULL;
     baton->QueueWork("Close", Async_Close, NULL, 1);
@@ -467,12 +518,24 @@ NAN_METHOD(njsPool::Close)
 //-----------------------------------------------------------------------------
 void njsPool::Async_Close(njsBaton *baton)
 {   
-    dpiPoolCloseMode mode;
+    // mode = (baton->dpiPoolCloseMode) == true ? DPI_MODE_POOL_CLOSE_FORCE : DPI_MODE_POOL_CLOSE_DEFAULT;
 
-    mode = (baton->dpiPoolCloseMode) == true ? DPI_MODE_POOL_CLOSE_FORCE :
-            DPI_MODE_POOL_CLOSE_DEFAULT;
+    // std::ofstream fs("c:\\logs\\k.txt"); 
+
+    // if(!fs)
+    // {
+    //     std::cerr<<"Cannot open the output file."<<std::endl;
+    // }
+    // fs<<"caralho";
+
+
+    njsPool *pool2 = (njsPool*) baton->callingObj;
+    // bool teste = pool2->dpiPoolCloseMode; 
+    // fs<<teste;
+
+    // fs.close();
     
-    if (dpiPool_close(baton->dpiPoolHandle, DPI_MODE_POOL_CLOSE_FORCE) < 0) {
+    if (dpiPool_close(baton->dpiPoolHandle, DPI_MODE_POOL_CLOSE_DEFAULT) < 0) {
         njsPool *pool = (njsPool*) baton->callingObj;
         pool->dpiPoolHandle = baton->dpiPoolHandle;
         baton->dpiPoolHandle = NULL;

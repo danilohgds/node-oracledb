@@ -125,6 +125,7 @@ private:
     uint32_t stmtCacheSize;
     uint32_t lobPrefetchSize;
     int32_t poolPingInterval;
+    bool closing;
 
     static Nan::Persistent<FunctionTemplate> poolTemplate_s ;
 };
